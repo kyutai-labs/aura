@@ -12,8 +12,14 @@ AURA turns a single portrait image and a speech audio stream into a talking-head
 in streaming**. Each chunk needs only its own audio, with no multi-second look-ahead. The models are 4-step
 **causal** students distilled from 50-step bidirectional speech-to-video teachers. A rolling KV cache keeps
 the first chunk as an identity anchor plus the most recent chunk, so memory stays constant on arbitrarily
-long streams. Samples are on the [project page](http://kyutai.org/aura), and you can talk to AURA-1.3B in
-the [live demo](https://aura.kyutai.org/).
+long streams. Samples are on the [project page](http://kyutai.org/aura), and you can talk to AURA-1.3B combined with our cascaded voice model Unmute in
+the [live demo] too (https://aura.kyutai.org/).
+
+
+
+https://github.com/user-attachments/assets/de813f1c-0836-4c17-9851-096e8dfcbdd9
+
+
 
 ## Models
 
@@ -22,13 +28,16 @@ the [live demo](https://aura.kyutai.org/).
 | [AURA-1.3B](https://huggingface.co/kyutai/AURA-1.3B) | [AURA-1.3B-Teacher-TalkVerse](https://huggingface.co/kyutai/AURA-1.3B-Teacher-TalkVerse) (on [Wan2.1-T2V-1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B)) | [Mimi](https://huggingface.co/kyutai/mimi) | 576p, 16 fps | **20.7 fps (real time)**, 23× faster than its teacher | CC BY-NC 4.0 |
 | [AURA-5B](https://huggingface.co/kyutai/AURA-5B) | [TalkVerse-S2V-5B](https://huggingface.co/snap-research/talkverse-s2v-5b) (on [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)) | [wav2vec2-large-xlsr-53-english](https://huggingface.co/jonatasgrosman/wav2vec2-large-xlsr-53-english) | 720p, 25 fps | 9.7 fps, 17× faster than its teacher | Snap Inc. Non-Commercial |
 
-The paper speeds are end-to-end, measured with an optimized pipeline. With `--compile`, the reference
+The reported  speeds are end-to-end, measured with an optimized pipeline on a H100 GPU. With `--compile`, the reference
 code in this repository runs AURA-1.3B at ~16 fps (real time for 16 fps playback) and AURA-5B at ~8 fps
 on one H100.
 
+<img width="1800" height="651" alt="V3_method" src="https://github.com/user-attachments/assets/122ed3a4-8122-4513-bee0-af0c2a625f7b" />
+
+
 ## Installation
 
-AURA needs a CUDA GPU and [uv](https://docs.astral.sh/uv/):
+To use AURA, you will need a CUDA GPU and [uv](https://docs.astral.sh/uv/) for the python setup:
 
 ```bash
 git clone https://github.com/kyutai-labs/aura.git && cd aura
@@ -42,16 +51,19 @@ uv run generate.py --image portrait.jpg --audio speech.wav --output out.mp4     
 uv run generate.py --model aura-5b --image portrait.jpg --audio speech.wav --output out.mp4  # AURA-5B
 ```
 
-On first use, the weights are downloaded from the Hugging Face Hub: the final AURA checkpoint
+AURA is trained on LoRA starting from a Text-to-Video (T2V) non-causal model. 
+On first use, the required weights are downloaded from the Hugging Face Hub: The final AURA checkpoint
 (`stage2_dmd/*_merged.safetensors`), the VAE and text encoder of the Wan base model, and the audio
-encoder. The video covers the whole audio. Options: `--prompt` (a short description of the video),
+encoder (Mimi or Wav2vec depending on the side). The video covers the whole audio. 
+
+Options: `--prompt` (a short description of the video),
 `--num_chunks` (length, in chunks of 16 frames), `--seed`, `--compile` (`torch.compile` the transformer:
 faster, after a few slow chunks).
 
 The portrait is resized and center-cropped to the closest training resolution. Square or landscape
 portraits where the face fills a good part of the frame work best.
 
-From Python, `generate` yields the video chunk by chunk:
+You can also use `generate` via the Python API
 
 ```python
 from aura import Aura
