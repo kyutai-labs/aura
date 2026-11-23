@@ -13,7 +13,7 @@ in streaming**. Each chunk needs only its own audio, with no multi-second look-a
 **causal** students distilled from 50-step bidirectional speech-to-video teachers. A rolling KV cache keeps
 the first chunk as an identity anchor plus the most recent chunk, so memory stays constant on arbitrarily
 long streams. Samples are on the [project page](http://kyutai.org/aura), and you can talk to AURA-1.3B combined with our cascaded voice model Unmute in
-the [live demo] too (https://aura.kyutai.org/).
+the [live demo](https://aura.kyutai.org/).
 
 
 
